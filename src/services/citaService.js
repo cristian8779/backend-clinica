@@ -268,6 +268,27 @@ const obtenerCitasFecha = async (fecha) => {
 };
 
 /**
+ * Horas ocupadas de un odontólogo en una fecha.
+ * A propósito NO usa populate ni devuelve el documento completo de la cita:
+ * el frontend público solo necesita saber qué horas ya no están libres,
+ * nunca los datos de los pacientes.
+ */
+
+const obtenerHorasOcupadas = async (odontologoId, fecha) => {
+
+    const citas = await Cita.find({
+
+        odontologo: odontologoId,
+
+        fecha: new Date(fecha)
+
+    }).select("hora -_id");
+
+    return citas.map((cita) => cita.hora);
+
+};
+
+/**
  * Cambiar estado
  */
 
@@ -324,6 +345,8 @@ module.exports = {
     obtenerCitasOdontologo,
 
     obtenerCitasFecha,
+
+    obtenerHorasOcupadas,
 
     cambiarEstado,
 

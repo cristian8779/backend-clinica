@@ -4,6 +4,12 @@ const generarJWT = require("../utils/generarJWT");
 
 const registrar = async (datos) => {
 
+    const totalAdministradores = await Administrador.countDocuments();
+
+    if (totalAdministradores > 0) {
+        throw new Error("El registro de administradores está deshabilitado.");
+    }
+
     const existe = await Administrador.findOne({
         correo: datos.correo
     });
