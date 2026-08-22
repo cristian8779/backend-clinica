@@ -151,6 +151,32 @@ const obtenerCitasFecha = async (req, res) => {
 
 };
 
+const obtenerHorasOcupadas = async (req, res) => {
+
+    try {
+
+        const horasOcupadas = await citaService.obtenerHorasOcupadas(
+            req.params.odontologoId,
+            req.params.fecha
+        );
+
+        res.json({
+            ok: true,
+            mensaje: "Disponibilidad obtenida correctamente.",
+            horasOcupadas
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            ok: false,
+            mensaje: error.message
+        });
+
+    }
+
+};
+
 const cambiarEstado = async (req, res) => {
 
     try {
@@ -232,6 +258,8 @@ module.exports = {
     obtenerCitasOdontologo,
 
     obtenerCitasFecha,
+
+    obtenerHorasOcupadas,
 
     cambiarEstado,
 

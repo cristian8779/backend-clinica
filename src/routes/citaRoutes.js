@@ -18,6 +18,8 @@ const {
 
     obtenerCitasFecha,
 
+    obtenerHorasOcupadas,
+
     cambiarEstado,
 
     eliminarCita
@@ -25,12 +27,19 @@ const {
 } = require("../controllers/citaController");
 
 // =======================================
-// Ruta pública
+// Rutas públicas
 // =======================================
 
 router.post(
     "/solicitar",
     solicitarCita
+);
+
+// Solo devuelve un arreglo de horas ocupadas (ej. ["09:00", "11:30"]),
+// nunca datos de pacientes ni el documento completo de la cita.
+router.get(
+    "/disponibilidad/:odontologoId/:fecha",
+    obtenerHorasOcupadas
 );
 
 // =======================================
