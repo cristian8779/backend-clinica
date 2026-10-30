@@ -5,32 +5,29 @@ const router = express.Router();
 const validarJWT = require("../middlewares/validarJWT");
 
 const {
-
     solicitarCita,
-
     obtenerCitas,
-
     obtenerCita,
-
     obtenerCitasPaciente,
-
     obtenerCitasOdontologo,
-
     obtenerCitasFecha,
-
+    obtenerHorasOcupadas, // <--- Importada aquí
     cambiarEstado,
-
     eliminarCita
-
 } = require("../controllers/citaController");
 
 // =======================================
-// Ruta pública
+// Rutas públicas
 // =======================================
 
 router.post(
     "/solicitar",
     solicitarCita
+);
+
+router.get(
+    "/disponibilidad/:odontologoId/:fecha",
+    obtenerHorasOcupadas
 );
 
 // =======================================
