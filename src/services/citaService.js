@@ -268,6 +268,21 @@ const obtenerCitasFecha = async (fecha) => {
 };
 
 /**
+ * Obtener horas ocupadas para la disponibilidad
+ */
+const obtenerHorasOcupadas = async (odontologoId, fecha) => {
+    // Buscamos las citas del odontólogo en esa fecha exacta
+    const citas = await Cita.find({
+        odontologo: odontologoId,
+        fecha: new Date(fecha)
+    });
+
+    // Extraemos únicamente el campo de la hora de cada cita (ej: ["09:00", "11:30"])
+    const horasOcupadas = citas.map(cita => cita.hora);
+    return horasOcupadas;
+};
+
+/**
  * Cambiar estado
  */
 
@@ -324,6 +339,8 @@ module.exports = {
     obtenerCitasOdontologo,
 
     obtenerCitasFecha,
+
+    obtenerHorasOcupadas, // <--- Agregada aquí para exportarla
 
     cambiarEstado,
 
