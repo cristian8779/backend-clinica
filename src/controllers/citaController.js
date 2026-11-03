@@ -36,17 +36,31 @@ const obtenerCitas = async (req, res) => {
     }
 };
 
+const obtenerResumenCitas = async (_req, res) => {
+    try {
+        const resumen = await citaService.obtenerResumenCitas();
+        res.json({ ok: true, resumen });
+    } catch (error) {
+        res.status(500).json({ ok: false, mensaje: error.message });
+    }
+};
+
 const buscarCitas = async (req, res) => {
     try {
         const termino = String(req.query.q || "").trim();
-        if (!termino) {
+        const estado = String(req.query.estado || "").trim();
+        const estadosValidos = ["Pendiente", "Confirmada", "Finalizada", "Cancelada"];
+        if (estado && !estadosValidos.includes(estado)) {
+            return res.status(400).json({ ok: false, mensaje: "El estado indicado no es válido." });
+        }
+        if (!termino && !estado) {
             return res.status(400).json({
                 ok: false,
-                mensaje: "Escribe un dato para buscar citas."
+                mensaje: "Escribe un dato o selecciona un estado para buscar citas."
             });
         }
 
-        const citas = await citaService.buscarCitas(termino);
+        const citas = await citaService.buscarCitas(termino, estado);
         res.json({
             ok: true,
             mensaje: citas.length
@@ -215,6 +229,7 @@ const eliminarCita = async (req, res) => {
 module.exports = {
     solicitarCita,
     obtenerCitas,
+    obtenerResumenCitas,
     buscarCitas,
     obtenerCita,
     obtenerCitasPaciente,

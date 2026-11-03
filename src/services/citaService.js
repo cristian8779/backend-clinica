@@ -159,39 +159,65 @@ const obtenerCitas = async () => {
 
 };
 
+const obtenerResumenCitas = async () => {
+    const estados = await Cita.aggregate([
+        { $group: { _id: "$estado", cantidad: { $sum: 1 } } }
+    ]);
+    const resumen = {
+        total: 0,
+        Pendiente: 0,
+        Confirmada: 0,
+        Finalizada: 0,
+        Cancelada: 0
+    };
+
+    estados.forEach(({ _id, cantidad }) => {
+        resumen[_id] = cantidad;
+        resumen.total += cantidad;
+    });
+
+    return resumen;
+};
+
 /**
  * Buscar citas de todo el historial por paciente, teléfono, correo o servicio.
  * Cada palabra debe coincidir con algún dato del paciente para admitir
  * búsquedas por nombre y apellido completos.
  */
-const buscarCitas = async (termino) => {
+const buscarCitas = async (termino, estado) => {
     const texto = String(termino || "").trim().slice(0, 100);
-    if (!texto) return [];
+    const filtroEstado = ["Pendiente", "Confirmada", "Finalizada", "Cancelada"].includes(estado)
+        ? estado
+        : null;
+    if (!texto && !filtroEstado) return [];
 
-    const escaparRegex = (valor) => valor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const palabras = texto.split(/\s+/).filter(Boolean);
-    const camposPaciente = ["nombre", "apellido", "telefono", "correo", "documento"];
-    const condicionesPaciente = palabras.map((palabra) => {
-        const regex = new RegExp(escaparRegex(palabra), "i");
-        return { $or: camposPaciente.map((campo) => ({ [campo]: regex })) };
-    });
+    const filtros = [];
+    if (filtroEstado) filtros.push({ estado: filtroEstado });
 
-    const regexServicio = new RegExp(
-        palabras.map(escaparRegex).join("\\s+"),
-        "i"
-    );
+    if (texto) {
+        const escaparRegex = (valor) => valor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const palabras = texto.split(/\s+/).filter(Boolean);
+        const camposPaciente = ["nombre", "apellido", "telefono", "correo", "documento"];
+        const condicionesPaciente = palabras.map((palabra) => {
+            const regex = new RegExp(escaparRegex(palabra), "i");
+            return { $or: camposPaciente.map((campo) => ({ [campo]: regex })) };
+        });
+        const regexServicio = new RegExp(palabras.map(escaparRegex).join("\\s+"), "i");
 
-    const [pacientes, servicios] = await Promise.all([
-        Paciente.find({ $and: condicionesPaciente }).select("_id"),
-        Servicio.find({ nombre: regexServicio }).select("_id")
-    ]);
+        const [pacientes, servicios] = await Promise.all([
+            Paciente.find({ $and: condicionesPaciente }).select("_id"),
+            Servicio.find({ nombre: regexServicio }).select("_id")
+        ]);
 
-    const alternativas = [];
-    if (pacientes.length) alternativas.push({ paciente: { $in: pacientes.map((p) => p._id) } });
-    if (servicios.length) alternativas.push({ servicio: { $in: servicios.map((s) => s._id) } });
-    if (!alternativas.length) return [];
+        const alternativas = [];
+        if (pacientes.length) alternativas.push({ paciente: { $in: pacientes.map((p) => p._id) } });
+        if (servicios.length) alternativas.push({ servicio: { $in: servicios.map((s) => s._id) } });
+        if (!alternativas.length) return [];
+        filtros.push({ $or: alternativas });
+    }
 
-    return await Cita.find({ $or: alternativas })
+    const consulta = filtros.length === 1 ? filtros[0] : { $and: filtros };
+    return await Cita.find(consulta)
         .populate("paciente")
         .populate({
             path: "odontologo",
@@ -373,6 +399,7 @@ module.exports = {
     solicitarCita,
 
     obtenerCitas,
+    obtenerResumenCitas,
     buscarCitas,
 
     obtenerCita,
