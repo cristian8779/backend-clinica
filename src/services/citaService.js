@@ -160,6 +160,48 @@ const obtenerCitas = async () => {
 };
 
 /**
+ * Buscar citas de todo el historial por paciente, teléfono, correo o servicio.
+ * Cada palabra debe coincidir con algún dato del paciente para admitir
+ * búsquedas por nombre y apellido completos.
+ */
+const buscarCitas = async (termino) => {
+    const texto = String(termino || "").trim().slice(0, 100);
+    if (!texto) return [];
+
+    const escaparRegex = (valor) => valor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const palabras = texto.split(/\s+/).filter(Boolean);
+    const camposPaciente = ["nombre", "apellido", "telefono", "correo", "documento"];
+    const condicionesPaciente = palabras.map((palabra) => {
+        const regex = new RegExp(escaparRegex(palabra), "i");
+        return { $or: camposPaciente.map((campo) => ({ [campo]: regex })) };
+    });
+
+    const regexServicio = new RegExp(
+        palabras.map(escaparRegex).join("\\s+"),
+        "i"
+    );
+
+    const [pacientes, servicios] = await Promise.all([
+        Paciente.find({ $and: condicionesPaciente }).select("_id"),
+        Servicio.find({ nombre: regexServicio }).select("_id")
+    ]);
+
+    const alternativas = [];
+    if (pacientes.length) alternativas.push({ paciente: { $in: pacientes.map((p) => p._id) } });
+    if (servicios.length) alternativas.push({ servicio: { $in: servicios.map((s) => s._id) } });
+    if (!alternativas.length) return [];
+
+    return await Cita.find({ $or: alternativas })
+        .populate("paciente")
+        .populate({
+            path: "odontologo",
+            populate: { path: "especialidad" }
+        })
+        .populate("servicio")
+        .sort({ fecha: 1, hora: 1 });
+};
+
+/**
  * Obtener una cita
  */
 
@@ -331,6 +373,7 @@ module.exports = {
     solicitarCita,
 
     obtenerCitas,
+    buscarCitas,
 
     obtenerCita,
 

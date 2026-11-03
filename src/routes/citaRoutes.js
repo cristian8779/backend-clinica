@@ -7,6 +7,7 @@ const validarJWT = require("../middlewares/validarJWT");
 const {
     solicitarCita,
     obtenerCitas,
+    buscarCitas,
     obtenerCita,
     obtenerCitasPaciente,
     obtenerCitasOdontologo,
@@ -38,6 +39,12 @@ router.get(
     "/",
     validarJWT,
     obtenerCitas
+);
+
+router.get(
+    "/buscar",
+    validarJWT,
+    buscarCitas
 );
 
 router.get(

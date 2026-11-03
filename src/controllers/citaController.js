@@ -36,6 +36,32 @@ const obtenerCitas = async (req, res) => {
     }
 };
 
+const buscarCitas = async (req, res) => {
+    try {
+        const termino = String(req.query.q || "").trim();
+        if (!termino) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Escribe un dato para buscar citas."
+            });
+        }
+
+        const citas = await citaService.buscarCitas(termino);
+        res.json({
+            ok: true,
+            mensaje: citas.length
+                ? "Resultados de búsqueda obtenidos correctamente."
+                : "No encontramos citas con esos datos.",
+            citas
+        });
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            mensaje: error.message
+        });
+    }
+};
+
 const obtenerCita = async (req, res) => {
     try {
         const cita = await citaService.obtenerCita(req.params.id);
@@ -189,6 +215,7 @@ const eliminarCita = async (req, res) => {
 module.exports = {
     solicitarCita,
     obtenerCitas,
+    buscarCitas,
     obtenerCita,
     obtenerCitasPaciente,
     obtenerCitasOdontologo,
