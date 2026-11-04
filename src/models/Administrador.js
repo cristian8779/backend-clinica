@@ -22,21 +22,6 @@ const administradorSchema = new mongoose.Schema(
             select: false
         },
 
-        resetPasswordToken: {
-            type: String,
-            select: false
-        },
-
-        resetPasswordExpires: {
-            type: Date,
-            select: false
-        },
-
-        tokenVersion: {
-            type: Number,
-            default: 0
-        },
-
         rol: {
             type: String,
             enum: ["ADMIN"],

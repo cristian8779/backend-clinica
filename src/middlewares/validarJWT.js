@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
-const Administrador = require("../models/Administrador");
 
-const validarJWT = async (req, res, next) => {
+const validarJWT = (req, res, next) => {
 
     const token = req.header("x-token");
 
@@ -14,18 +13,10 @@ const validarJWT = async (req, res, next) => {
 
     try {
 
-        const { id, version = 0 } = jwt.verify(
+        const { id } = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
-
-        const administrador = await Administrador.findById(id).select("tokenVersion");
-        if (!administrador || (administrador.tokenVersion || 0) !== version) {
-            return res.status(401).json({
-                ok: false,
-                mensaje: "La sesión venció. Inicia sesión nuevamente."
-            });
-        }
 
         req.id = id;
 
