@@ -18,7 +18,23 @@ const administradorSchema = new mongoose.Schema(
 
         password: {
             type: String,
-            required: true
+            required: true,
+            select: false
+        },
+
+        resetPasswordToken: {
+            type: String,
+            select: false
+        },
+
+        resetPasswordExpires: {
+            type: Date,
+            select: false
+        },
+
+        tokenVersion: {
+            type: Number,
+            default: 0
         },
 
         rol: {
